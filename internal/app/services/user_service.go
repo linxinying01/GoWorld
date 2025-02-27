@@ -19,7 +19,13 @@ func NewUserService(repo repositories.UserRepository, logger *zap.Logger) *UserS
 	}
 }
 
-func (s *UserService) GetUser(id string) {
+// func (s *UserService) GetUser(id string) {
+// 	s.logger.Info("查询用户", zap.String("user_id", id))
+
+// 	// 调用 repository
+// }
+
+func (s *UserService) GetUserByID(id string) {
 	s.logger.Info("查询用户", zap.String("user_id", id))
 
 	// 调用 repository
