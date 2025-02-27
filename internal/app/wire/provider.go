@@ -14,6 +14,12 @@ import (
 	"gorm.io/gorm"
 )
 
+type App struct {
+	AuthHandler   *handlers.AuthHandler
+	UserHandler   *handlers.UserHandler
+	JWTMiddleware *middleware.JWTMiddleware
+}
+
 // 配置提供者
 func ProvideConfig() (*config.Config, error) {
 	config, err := config.LoadConfig("./configs")
@@ -57,6 +63,8 @@ var (
 		handlers.NewAuthHandler,
 		handlers.NewUserHandler,
 		middleware.NewJWTMiddleware,
+
+		wire.Struct(new(App), "*"),
 	)
 )
 

@@ -15,8 +15,7 @@ import (
 
 // Injectors from wire.go:
 
-// 初始化应用程序依赖（入口函数）
-func InitializeAuth() (*handlers.AuthHandler, error) {
+func InitializeApp() (*App, error) {
 	config, err := ProvideConfig()
 	if err != nil {
 		return nil, err
@@ -32,37 +31,13 @@ func InitializeAuth() (*handlers.AuthHandler, error) {
 	userRepository := repositories.NewUserRepository(db, logger)
 	authService := services.NewAuthService(userRepository, logger, config)
 	authHandler := handlers.NewAuthHandler(authService, logger)
-	return authHandler, nil
-}
-
-func InitializeUser() (*handlers.UserHandler, error) {
-	config, err := ProvideConfig()
-	if err != nil {
-		return nil, err
-	}
-	logger, err := ProvideLogger(config)
-	if err != nil {
-		return nil, err
-	}
-	db, err := ProvideDB(config, logger)
-	if err != nil {
-		return nil, err
-	}
-	userRepository := repositories.NewUserRepository(db, logger)
 	userService := services.NewUserService(userRepository, logger)
 	userHandler := handlers.NewUserHandler(logger, config, userService)
-	return userHandler, nil
-}
-
-func InitializeJwt() (*middleware.JWTMiddleware, error) {
-	config, err := ProvideConfig()
-	if err != nil {
-		return nil, err
-	}
-	logger, err := ProvideLogger(config)
-	if err != nil {
-		return nil, err
-	}
 	jwtMiddleware := middleware.NewJWTMiddleware(config, logger)
-	return jwtMiddleware, nil
+	app := &App{
+		AuthHandler:   authHandler,
+		UserHandler:   userHandler,
+		JWTMiddleware: jwtMiddleware,
+	}
+	return app, nil
 }
