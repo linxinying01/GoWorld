@@ -10,12 +10,25 @@ type Config struct {
 	App struct {
 		Env string `mapstructure:"env"`
 	} `mapstructure:"app"`
+
 	Server struct {
 		Port string `mapstructure:"port"`
 	} `mapstructure:"server"`
+
 	Database struct {
-		DSN string `mapstructure:"dsn"`
+		MySQL struct {
+			DSN             string `mapstructure:"dsn"`
+			MaxOpenConns    int    `mapstructure:"max_open_conns"`
+			MaxIdleConns    int    `mapstructure:"max_idle_conns"`
+			ConnMaxLifetime string `mapstructure:"conn_max_lifetime"`
+			ConnMaxIdleTime string `mapstructure:"conn_max_idle_time"`
+		} `mapstructure:"mysql"`
 	} `mapstructure:"database"`
+
+	Security struct {
+		JWTSecret       string `mapstructure:"jwt_secret"`
+		TokenExpiration string `mapstructure:"token_expiration"`
+	} `mapstructure:"security"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

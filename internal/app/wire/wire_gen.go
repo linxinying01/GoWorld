@@ -8,6 +8,7 @@ package wire
 
 import (
 	"GoWorld/internal/app/handlers"
+	"GoWorld/internal/app/middleware"
 	"GoWorld/internal/app/repositories"
 	"GoWorld/internal/app/services"
 )
@@ -15,7 +16,7 @@ import (
 // Injectors from wire.go:
 
 // 初始化应用程序依赖（入口函数）
-func InitializeApp() (*handlers.UserHandler, error) {
+func InitializeAuth() (*handlers.AuthHandler, error) {
 	config, err := ProvideConfig()
 	if err != nil {
 		return nil, err
@@ -24,7 +25,26 @@ func InitializeApp() (*handlers.UserHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	db, err := ProvideDB(config)
+	db, err := ProvideDB(config, logger)
+	if err != nil {
+		return nil, err
+	}
+	userRepository := repositories.NewUserRepository(db, logger)
+	authService := services.NewAuthService(userRepository, logger, config)
+	authHandler := handlers.NewAuthHandler(authService, logger)
+	return authHandler, nil
+}
+
+func InitializeUser() (*handlers.UserHandler, error) {
+	config, err := ProvideConfig()
+	if err != nil {
+		return nil, err
+	}
+	logger, err := ProvideLogger(config)
+	if err != nil {
+		return nil, err
+	}
+	db, err := ProvideDB(config, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -32,4 +52,17 @@ func InitializeApp() (*handlers.UserHandler, error) {
 	userService := services.NewUserService(userRepository, logger)
 	userHandler := handlers.NewUserHandler(logger, config, userService)
 	return userHandler, nil
+}
+
+func InitializeJwt() (*middleware.JWTMiddleware, error) {
+	config, err := ProvideConfig()
+	if err != nil {
+		return nil, err
+	}
+	logger, err := ProvideLogger(config)
+	if err != nil {
+		return nil, err
+	}
+	jwtMiddleware := middleware.NewJWTMiddleware(config, logger)
+	return jwtMiddleware, nil
 }

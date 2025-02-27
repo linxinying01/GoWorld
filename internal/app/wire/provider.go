@@ -2,14 +2,15 @@ package wire
 
 import (
 	"GoWorld/internal/app/config"
+	"GoWorld/internal/app/database"
 	"GoWorld/internal/app/handlers"
 	"GoWorld/internal/app/logger"
+	"GoWorld/internal/app/middleware"
 	"GoWorld/internal/app/repositories"
 	"GoWorld/internal/app/services"
 
 	"github.com/google/wire"
 	"go.uber.org/zap"
-	// "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -25,37 +26,44 @@ func ProvideLogger(cfg *config.Config) (*zap.Logger, error) {
 }
 
 // 数据库提供者
-func ProvideDB(cfg *config.Config) (*gorm.DB, error) {
-	// db, err := gorm.Open(postgres.Open(cfg.Database.DSN))
-	// // 其它配置
-	// return db, err
-	return nil, nil
+func ProvideDB(cfg *config.Config, logger *zap.Logger) (*gorm.DB, error) {
+	return database.NewMySQLDB(cfg, logger)
 }
 
-// Repository 提供者
-var RepositorySet = wire.NewSet(
-	// wire.Bind(new(repositories.UserRepository), new(*repositories.UserRepo)),
-	repositories.NewUserRepository,
+// 依赖集合分组
+var (
+	// 基础设施层
+	InfraSet = wire.NewSet(
+		ProvideConfig,
+		ProvideLogger,
+		ProvideDB,
+	)
+
+	// Repository层
+	RepositorySet = wire.NewSet(
+		// wire.Bind(new(repositories.UserRepository), new(*repositories.UserRepo)),
+		repositories.NewUserRepository,
+	)
+
+	// Service 提供者
+	ServiceSet = wire.NewSet(
+		// wire.Bind(new(services.AuthService), new(*services.AuthServiceImpl)),
+		services.NewAuthService,
+		services.NewUserService,
+	)
+
+	// Handler 提供者
+	HandlerSet = wire.NewSet(
+		handlers.NewAuthHandler,
+		handlers.NewUserHandler,
+		middleware.NewJWTMiddleware,
+	)
 )
 
-// Service 提供者
-var ServiceSet = wire.NewSet(
-	services.NewUserService,
-)
-
-// Handler 提供者
-var HandlerSet = wire.NewSet(
-	handlers.NewUserHandler,
-)
-
-// 应用程序完整依赖集合
+// 完整依赖集合
 var SuperSet = wire.NewSet(
-	ProvideConfig,
-	ProvideLogger,
-	ProvideDB,
+	InfraSet,
 	RepositorySet,
 	ServiceSet,
 	HandlerSet,
-	// config.NewConfig,
-	// logger.NewLogger,
 )
