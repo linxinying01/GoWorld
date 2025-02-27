@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"GoWorld/internal/app/config"
+	"GoWorld/internal/app/services"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -10,12 +11,14 @@ import (
 type UserHandler struct {
 	logger *zap.Logger
 	config *config.Config
+	service *services.UserService
 }
 
-func NewUserHandler(logger *zap.Logger, cfg *config.Config) *UserHandler {
+func NewUserHandler(logger *zap.Logger, cfg *config.Config, service *services.UserService) *UserHandler {
 	return &UserHandler{
 		logger: logger,
 		config: cfg,
+		service: service,
 	}
 }
 
